@@ -23,9 +23,10 @@ std::tuple<std::string, std::string, int> simulate_trace(std::vector<std::string
 
         auto [activity, duration_intr, program_name] = parse_trace(trace);
        
-
+        std::cout << "The the activity is: ";
         if (activity == "CPU")
         { // As per Assignment 1
+            std::cout << "insi: ";
             execution += std::to_string(current_time) + ", " + std::to_string(duration_intr) + ", CPU Burst\n";
             current_time += duration_intr;
         }
@@ -133,8 +134,7 @@ std::tuple<std::string, std::string, int> simulate_trace(std::vector<std::string
                            current,
                            wait_queue);
                            
-            std::cout << execution;
-            std::cout << current_time1;
+         
             
             execution += execution1;
             current_time = current_time1;
@@ -170,7 +170,7 @@ std::tuple<std::string, std::string, int> simulate_trace(std::vector<std::string
             ///////////////////////////////////////////////////////////////////////////////////////////
 
             std::ifstream exec_trace_file(program_name + ".txt");
-
+         
             std::vector<std::string> exec_traces;
             std::string exec_trace;
             while (std::getline(exec_trace_file, exec_trace))
@@ -178,18 +178,21 @@ std::tuple<std::string, std::string, int> simulate_trace(std::vector<std::string
                 exec_traces.push_back(exec_trace);
             }
 
-            for (const std::string &line : exec_traces) {
-    std::cout << line << std::endl;
-}
+            
             ///////////////////////////////////////////////////////////////////////////////////////////
             // With the exec's trace (i.e. trace of external program), run the exec (HINT: think recursion)
-            simulate_trace(exec_traces,
+           
+            auto [execution2, system_status, current_time2] = simulate_trace(exec_traces,
                            current_time,
                            vectors,
                            delays,
                            external_files,
                            current,
                            wait_queue);
+
+            
+            execution += execution2;
+            current_time = current_time2;
             system_status += "time: " + std::to_string(current_time) + "; current trace: " + trace + "\n" + print_PCB(current, wait_queue);
             ///////////////////////////////////////////////////////////////////////////////////////////
 
