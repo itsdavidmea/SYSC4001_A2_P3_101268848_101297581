@@ -5,7 +5,7 @@ time: 24; current trace: FORK,  10
 |   1 |        init |               5 |    1 | running |
 |   0 |        init |               6 |    1 | waiting |
 +------------------------------------------------------+
-time: 62; current trace: EXEC program2, 25 
+time: 520; current trace: EXEC program2, 25 
 +------------------------------------------------------+
 | PID |program name |partition number | size |   state |
 +------------------------------------------------------+

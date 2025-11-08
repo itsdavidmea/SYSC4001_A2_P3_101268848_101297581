@@ -22,7 +22,7 @@ std::tuple<std::string, std::string, int> simulate_trace(std::vector<std::string
         auto trace = trace_file[i];
 
         auto [activity, duration_intr, program_name] = parse_trace(trace);
-        std::cout << program_name;
+       
 
         if (activity == "CPU")
         { // As per Assignment 1
@@ -123,9 +123,22 @@ std::tuple<std::string, std::string, int> simulate_trace(std::vector<std::string
             {
                 std::cerr << "ERROR! Memory allocation failed!" << std::endl;
             }
-            
 
-            system_status += "time: " + std::to_string(current_time) + "; current trace: " + trace + "\n" + print_PCB(child_process, wait_queue);
+           system_status += "time: " + std::to_string(current_time) + "; current trace: " + trace + "\n" + print_PCB(child_process, wait_queue);
+            auto [execution1, system_status, current_time1] = simulate_trace(child_trace,
+                           current_time,
+                           vectors,
+                           delays,
+                           external_files,
+                           current,
+                           wait_queue);
+                           
+            std::cout << execution;
+            std::cout << current_time1;
+            
+            execution += execution1;
+            current_time = current_time1;
+            
 
             ///////////////////////////////////////////////////////////////////////////////////////////
         }
@@ -139,8 +152,20 @@ std::tuple<std::string, std::string, int> simulate_trace(std::vector<std::string
             // Add your EXEC output here
 
             int size_of_program = get_size(program_name, external_files);
-            execution += std::to_string(current_time) + ", " + std::to_string(duration_intr) + ", Programn is " + program_name + " Mb large\n";
+            execution += std::to_string(current_time) + ", " + std::to_string(duration_intr) + ", Programn is " + std::to_string(size_of_program) + " Mb large\n";
             current_time += duration_intr;
+            execution += std::to_string(current_time) + ", " + std::to_string(size_of_program * 15) + ", loading program into memory \n";
+            current_time += size_of_program * 15;
+            execution += std::to_string(current_time) + ", " + std::to_string(3) + ", marking partition as occupied \n";
+            current_time += 3; 
+            execution += std::to_string(current_time) + ", " + std::to_string(6) + ", updating PCB \n";
+            current_time += 6;
+
+            execution += std::to_string(current_time) + ", " + "0" + ", scheduler called\n";
+            
+
+            execution += std::to_string(current_time) + ", " + "1" + ", IRET\n";
+            current_time += 1;
 
             ///////////////////////////////////////////////////////////////////////////////////////////
 
@@ -153,14 +178,25 @@ std::tuple<std::string, std::string, int> simulate_trace(std::vector<std::string
                 exec_traces.push_back(exec_trace);
             }
 
+            for (const std::string &line : exec_traces) {
+    std::cout << line << std::endl;
+}
             ///////////////////////////////////////////////////////////////////////////////////////////
             // With the exec's trace (i.e. trace of external program), run the exec (HINT: think recursion)
-
+            simulate_trace(exec_traces,
+                           current_time,
+                           vectors,
+                           delays,
+                           external_files,
+                           current,
+                           wait_queue);
             system_status += "time: " + std::to_string(current_time) + "; current trace: " + trace + "\n" + print_PCB(current, wait_queue);
             ///////////////////////////////////////////////////////////////////////////////////////////
 
             break; // Why is this important? (answer in report)
         }
+
+        
     }
 
     return {execution, system_status, current_time};
