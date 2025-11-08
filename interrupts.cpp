@@ -23,7 +23,7 @@ std::tuple<std::string, std::string, int> simulate_trace(std::vector<std::string
 
         auto [activity, duration_intr, program_name] = parse_trace(trace);
        
-        std::cout << "The the activity is: ";
+        
         if (activity == "CPU")
         { // As per Assignment 1
             std::cout << "insi: ";
@@ -92,8 +92,11 @@ std::tuple<std::string, std::string, int> simulate_trace(std::vector<std::string
                 {
                     skip = true;
                     parent_index = j;
+                    
+                    
                     if (exec_flag)
                     {
+                        
                         break;
                     }
                 }
@@ -112,21 +115,35 @@ std::tuple<std::string, std::string, int> simulate_trace(std::vector<std::string
 
                 if (!skip)
                 {
+                    
                     child_trace.push_back(trace_file[j]);
                 }
             }
             i = parent_index;
+            
+            std::cout << "The value of myInteger is: " << i << std::endl;
 
             ///////////////////////////////////////////////////////////////////////////////////////////
             // With the child's trace, run the child (HINT: think recursion)
-            PCB child_process(current.PID + 1, current.PID, "init", 1, -1);
-            if (!allocate_memory(&child_process))
+            
+            
+            
+            current.PID =  current.PID + 1;
+            current.PPID = current.PID;
+            current.program_name = "init";
+            
+            
+
+
+            if (!allocate_memory(&current))
             {
                 std::cerr << "ERROR! Memory allocation failed!" << std::endl;
             }
 
-           system_status += "time: " + std::to_string(current_time) + "; current trace: " + trace + "\n" + print_PCB(child_process, wait_queue);
-            auto [execution1, system_status, current_time1] = simulate_trace(child_trace,
+            
+
+           system_status += "time: " + std::to_string(current_time) + "; current trace: " + trace + "\n" + print_PCB(current, wait_queue);
+            auto [execution1, system_status1, current_time1] = simulate_trace(child_trace,
                            current_time,
                            vectors,
                            delays,
@@ -135,9 +152,11 @@ std::tuple<std::string, std::string, int> simulate_trace(std::vector<std::string
                            wait_queue);
                            
          
-            
+            wait_queue.pop_back();
             execution += execution1;
             current_time = current_time1;
+             system_status += system_status1;
+            
             
 
             ///////////////////////////////////////////////////////////////////////////////////////////
@@ -178,11 +197,27 @@ std::tuple<std::string, std::string, int> simulate_trace(std::vector<std::string
                 exec_traces.push_back(exec_trace);
             }
 
+      
+
+          
+            
+           
             
             ///////////////////////////////////////////////////////////////////////////////////////////
             // With the exec's trace (i.e. trace of external program), run the exec (HINT: think recursion)
+            
+            
+            current.program_name = program_name;
+            current.size = size_of_program;
            
-            auto [execution2, system_status, current_time2] = simulate_trace(exec_traces,
+            if (!allocate_memory(&current))
+            {
+                std::cerr << "ERROR! Memory allocation failed!" << std::endl;
+            }
+
+            
+
+            auto [execution2, system_status2, current_time2] = simulate_trace(exec_traces,
                            current_time,
                            vectors,
                            delays,
