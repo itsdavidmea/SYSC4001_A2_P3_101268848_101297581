@@ -18,9 +18,11 @@ std::tuple<std::string, std::string, int> simulate_trace(std::vector<std::string
     // parse each line of the input trace file. 'for' loop to keep track of indices.
     for (size_t i = 0; i < trace_file.size(); i++)
     {
+
         auto trace = trace_file[i];
 
         auto [activity, duration_intr, program_name] = parse_trace(trace);
+        std::cout << program_name;
 
         if (activity == "CPU")
         { // As per Assignment 1
@@ -59,18 +61,18 @@ std::tuple<std::string, std::string, int> simulate_trace(std::vector<std::string
 
             ///////////////////////////////////////////////////////////////////////////////////////////
             // Add your FORK output here
-            
+
             execution += std::to_string(current_time) + ", " + "10" + ", cloning the PCB\n";
             current_time += 10;
             execution += std::to_string(current_time) + ", " + "0" + ", scheduler called\n";
-            
+
             execution += std::to_string(current_time) + ", " + "1" + ", IRET\n";
             current_time += 1;
 
             ///////////////////////////////////////////////////////////////////////////////////////////
 
             // The following loop helps you do 2 things:
-            //  * Collect the trace of the chile (and only the child, skip parent)
+            //  * Collect the trace of the child (and only the child, skip parent)
             //  * Get the index of where the parent is supposed to start executing from
             std::vector<std::string> child_trace;
             bool skip = true;
@@ -103,6 +105,7 @@ std::tuple<std::string, std::string, int> simulate_trace(std::vector<std::string
                 {
                     skip = true;
                     child_trace.push_back(trace_file[j]);
+
                     exec_flag = true;
                 }
 
@@ -115,6 +118,14 @@ std::tuple<std::string, std::string, int> simulate_trace(std::vector<std::string
 
             ///////////////////////////////////////////////////////////////////////////////////////////
             // With the child's trace, run the child (HINT: think recursion)
+            PCB child_process(current.PID + 1, current.PID, "init", 1, -1);
+            if (!allocate_memory(&child_process))
+            {
+                std::cerr << "ERROR! Memory allocation failed!" << std::endl;
+            }
+            
+
+            system_status += "time: " + std::to_string(current_time) + "; current trace: " + trace + "\n" + print_PCB(child_process, wait_queue);
 
             ///////////////////////////////////////////////////////////////////////////////////////////
         }
@@ -127,8 +138,9 @@ std::tuple<std::string, std::string, int> simulate_trace(std::vector<std::string
             ///////////////////////////////////////////////////////////////////////////////////////////
             // Add your EXEC output here
 
-
-            
+            int size_of_program = get_size(program_name, external_files);
+            execution += std::to_string(current_time) + ", " + std::to_string(duration_intr) + ", Programn is " + program_name + " Mb large\n";
+            current_time += duration_intr;
 
             ///////////////////////////////////////////////////////////////////////////////////////////
 
@@ -144,6 +156,7 @@ std::tuple<std::string, std::string, int> simulate_trace(std::vector<std::string
             ///////////////////////////////////////////////////////////////////////////////////////////
             // With the exec's trace (i.e. trace of external program), run the exec (HINT: think recursion)
 
+            system_status += "time: " + std::to_string(current_time) + "; current trace: " + trace + "\n" + print_PCB(current, wait_queue);
             ///////////////////////////////////////////////////////////////////////////////////////////
 
             break; // Why is this important? (answer in report)
@@ -168,7 +181,8 @@ int main(int argc, char **argv)
     print_external_files(external_files);
 
     // Make initial PCB (notice how partition is not assigned yet)
-    PCB current(0, -1, "init", 1, 6);
+    PCB current(0, -1, "init", 1, -1);
+
     // Update memory (partition is assigned here, you must implement this function)
     if (!allocate_memory(&current))
     {
@@ -176,16 +190,9 @@ int main(int argc, char **argv)
     }
 
     std::vector<PCB> wait_queue;
+    wait_queue.push_back(current);
 
     /******************ADD YOUR VARIABLES HERE*************************/
-
-    memory_partition_t memory[] = {
-        memory_partition_t(1, 40, "empty"),
-        memory_partition_t(2, 25, "empty"),
-        memory_partition_t(3, 15, "empty"),
-        memory_partition_t(4, 10, "empty"),
-        memory_partition_t(5, 8, "empty"),
-        memory_partition_t(6, 2, "empty")};
 
     /******************************************************************/
 

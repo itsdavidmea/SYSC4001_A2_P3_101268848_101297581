@@ -57,6 +57,7 @@ bool allocate_memory(PCB* current) {
         if(memory[i].size >= current->size && memory[i].code == "empty") {
             current->partition_number = memory[i].partition_number;
             memory[i].code = current->program_name;
+            
             return true;
         }
     }
