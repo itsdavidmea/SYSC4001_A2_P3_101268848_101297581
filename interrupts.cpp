@@ -59,9 +59,12 @@ std::tuple<std::string, std::string, int> simulate_trace(std::vector<std::string
             auto [intr, time] = intr_boilerplate(current_time, 2, 10, vectors);
             execution += intr;
             current_time = time;
+            //new process 
+            PCB newProcess(current.PID + 1, current.PID, current.program_name, current.size, -1);
 
             ///////////////////////////////////////////////////////////////////////////////////////////
             // Add your FORK output here
+
 
             execution += std::to_string(current_time) + ", " + "10" + ", cloning the PCB\n";
             current_time += 10;
@@ -128,21 +131,21 @@ std::tuple<std::string, std::string, int> simulate_trace(std::vector<std::string
             
             
             
-            current.PID =  current.PID + 1;
-            current.PPID = current.PID;
-            current.program_name = "init";
+            
             
             
 
-
-            if (!allocate_memory(&current))
+            if (!allocate_memory(&newProcess))
             {
                 std::cerr << "ERROR! Memory allocation failed!" << std::endl;
             }
 
-            
 
-           system_status += "time: " + std::to_string(current_time) + "; current trace: " + trace + "\n" + print_PCB(current, wait_queue);
+
+            wait_queue.push_back(current);
+            current = newProcess; 
+
+           system_status += "time: " + std::to_string(current_time) + "; current trace: " + trace + "\n" + print_PCB(newProcess, wait_queue);
             auto [execution1, system_status1, current_time1] = simulate_trace(child_trace,
                            current_time,
                            vectors,
@@ -151,11 +154,12 @@ std::tuple<std::string, std::string, int> simulate_trace(std::vector<std::string
                            current,
                            wait_queue);
                            
-         
+            free_memory(&newProcess);
+            current = wait_queue.back();
             wait_queue.pop_back();
             execution += execution1;
             current_time = current_time1;
-             system_status += system_status1;
+            system_status += system_status1;
             
             
 
@@ -209,14 +213,15 @@ std::tuple<std::string, std::string, int> simulate_trace(std::vector<std::string
             
             current.program_name = program_name;
             current.size = size_of_program;
-           
+            free_memory(&current);
+            
             if (!allocate_memory(&current))
             {
                 std::cerr << "ERROR! Memory allocation failed!" << std::endl;
             }
 
             
-
+            system_status += "time: " + std::to_string(current_time) + "; current trace: " + trace + "\n" + print_PCB(current, wait_queue);
             auto [execution2, system_status2, current_time2] = simulate_trace(exec_traces,
                            current_time,
                            vectors,
@@ -228,7 +233,7 @@ std::tuple<std::string, std::string, int> simulate_trace(std::vector<std::string
             
             execution += execution2;
             current_time = current_time2;
-            system_status += "time: " + std::to_string(current_time) + "; current trace: " + trace + "\n" + print_PCB(current, wait_queue);
+            system_status += system_status2;
             ///////////////////////////////////////////////////////////////////////////////////////////
 
             break; // Why is this important? (answer in report)
@@ -264,7 +269,7 @@ int main(int argc, char **argv)
     }
 
     std::vector<PCB> wait_queue;
-    wait_queue.push_back(current);
+    
 
     /******************ADD YOUR VARIABLES HERE*************************/
 
